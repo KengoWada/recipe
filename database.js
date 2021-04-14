@@ -48,24 +48,43 @@ const createUser = async (user) => {
                       '${user.email}',
                       '${user.password}'
                     )`;
-  await pool.query(query).catch((err) => {
-    return { isValid: false, error: err.message };
-  });
 
-  return { isValid: true, error: null };
+  try {
+    await pool.query(query);
+    return { isValid: true, error: null };
+  } catch (err) {
+    return { isValid: false, error: err.message };
+  }
 };
 
 const getUser = async (userId) => {
   const query = `SELECT * FROM users WHERE id='${userId}'`;
-  const result = await pool.query(query).catch((err) => {
+
+  try {
+    const result = await pool.query(query);
+    if (result.rowCount <= 0) {
+      return { isValid: false, error: "Invalid user id", user: null };
+    }
+
+    return { isValid: true, error: null, user: result.rows[0] };
+  } catch (err) {
     return { isValid: false, error: err.message, user: null };
-  });
-
-  if (result.rowCount <= 0) {
-    return { isValid: false, error: "Invalid user id", user: null };
   }
+};
 
-  return { isValid: true, error: null, user: result.rows[0] };
+const getUserByEmail = async (email) => {
+  const query = `SELECT * FROM users WHERE email='${email}'`;
+
+  try {
+    const result = await pool.query(query);
+    if (result.rowCount <= 0) {
+      return { isValid: false, error: "Invalid user email", user: null };
+    }
+
+    return { isValid: true, error: null, user: result.rows[0] };
+  } catch (err) {
+    return { isValid: false, error: err.message, user: null };
+  }
 };
 
 const createRecipe = async (recipe) => {
@@ -241,6 +260,7 @@ const createFeedback = async (feedback) => {
 module.exports = {
   createUser,
   getUser,
+  getUserByEmail,
   createFeedback,
   getRecipe,
   createRecipe,

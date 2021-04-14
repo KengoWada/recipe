@@ -16,6 +16,20 @@ const validateRegisterUser = (body) => {
   return { isValid: true, error: null };
 };
 
+const validateLogin = (body) => {
+  const schema = Joi.object({
+    email: Joi.string().required(),
+    password: Joi.string().required(),
+  });
+
+  const res = schema.validate(body);
+  if (res.error) {
+    return { isValid: false, error: res.error };
+  }
+
+  return { isValid: true, error: null };
+};
+
 // (async function () {
 //   const body = {
 //     email: "louiskengo3@gmail.com",
@@ -25,4 +39,4 @@ const validateRegisterUser = (body) => {
 //   console.log(validateRegisterUser(body));
 // })();
 
-module.exports = { validateRegisterUser };
+module.exports = { validateRegisterUser, validateLogin };
