@@ -176,6 +176,44 @@ const getRecipe = async (recipe_id) => {
   }
 };
 
+const getAllRecipes = async () => {
+  const query = `SELECT
+                  recipes.id,
+                  recipes.title,
+                  recipes.description,
+                  recipes.user_id,
+                  users.username,
+                  COUNT(feedback.id) AS num_comments
+                FROM
+                  recipes
+                  LEFT JOIN feedback ON recipes.id = feedback.recipe_id
+                  INNER JOIN users ON recipes.user_id = users.id
+                GROUP BY
+                  recipes.id,
+                  users.username
+                ORDER BY
+                  recipes.id DESC;`;
+
+  try {
+    const result = await pool.query(query);
+    let recipes = [];
+    for (let row in result.rows) {
+      const recipe = {
+        id: row.id,
+        title: row.title,
+        description: JSON.parse(row.description),
+        user: { id: row.user_id, username: row.username },
+        numOfComments: parseInt(rown.num_comments, 10),
+      };
+      recipes.push(recipe);
+    }
+
+    return { isValid: true, error: null, recipes };
+  } catch (err) {
+    return { isValid: true, error: err.message, recipes: null };
+  }
+};
+
 const getRecipesByUser = async (user_id) => {
   const query = `SELECT
                   recipes.id,
@@ -271,6 +309,7 @@ module.exports = {
   createFeedback,
   getRecipe,
   createRecipe,
+  getAllRecipes,
   getRecipeSimple,
   getRecipesByUser,
 };
