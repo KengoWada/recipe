@@ -209,20 +209,20 @@ const getAllRecipes = async () => {
   try {
     const result = await pool.query(query);
     let recipes = [];
-    for (let row in result.rows) {
+    for (let row of result.rows) {
       const recipe = {
         id: row.id,
         title: row.title,
         description: JSON.parse(row.description),
         user: { id: row.user_id, username: row.username },
-        numOfComments: parseInt(rown.num_comments, 10),
+        numOfComments: parseInt(row.num_comments, 10),
       };
       recipes.push(recipe);
     }
 
     return { isValid: true, error: null, recipes };
   } catch (err) {
-    return { isValid: true, error: err.message, recipes: null };
+    return { isValid: false, error: err.message, recipes: null };
   }
 };
 
