@@ -37,8 +37,20 @@ const createTables = async () => {
   await pool.query(createFeebackTable).catch((err) => console.log(err.message));
 };
 
-// TODO: Uncomment when running app for the first time
-// createTables();
+const dropTables = async () => {
+  const tableNames = ["feedback", "recipes", "users"];
+  for (let tableName of tableNames) {
+    const query = `DROP TABLE ${tableName}`;
+    await pool.query(query).catch((err) => console.log(err.message));
+  }
+};
+
+(async function () {
+  // ! Uncomment to drop tables
+  // await dropTables();
+  // ! Uncomment to create tables
+  // await createTables();
+})();
 
 const createUser = async (user) => {
   const query = `INSERT INTO
