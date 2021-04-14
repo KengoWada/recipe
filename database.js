@@ -91,8 +91,8 @@ const createRecipe = async (recipe) => {
   const query = `INSERT INTO
                   recipes(title, description, user_id)
                 VALUES(
-                    '${recipe.title}',
-                    '${recipe.description}',
+                    '${recipe.title.replace(/'/g, "''")}',
+                    '${recipe.description.replace(/'/g, "''")}',
                     '${recipe.userId}'
                 )`;
   await pool.query(query).catch((err) => {

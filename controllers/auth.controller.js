@@ -1,7 +1,7 @@
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
 
-const { createUser, getUser, getUserByEmail } = require("../database");
+const { createUser, getUserByEmail } = require("../database");
 const { validateRegisterUser, validateLogin } = require("../validation/index");
 
 const JWT_SECRET = process.env.JWT_SECRET;

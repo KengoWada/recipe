@@ -12,7 +12,7 @@ app.use(bodyParser.urlencoded({ extended: false }));
 app.use(bodyParser.json());
 
 app.use("/api/v1/auth", auth);
-// app.use("api/v1/recipes", recipes);
+app.use("/api/v1/recipes", recipes);
 
 app.get("/", (req, res) => {
   const response = { message: "Done", status: 200 };
