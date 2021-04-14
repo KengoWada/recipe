@@ -104,15 +104,17 @@ const createRecipe = async (recipe) => {
 
 const getRecipeSimple = async (recipe_id) => {
   const query = `SELECT * FROM recipes WHERE id=${recipe_id}`;
-  const result = await pool.query(query).catch((err) => {
+
+  try {
+    const result = await pool.query(query);
+    if (result.rowCount <= 0) {
+      return { isValid: false, error: "Invalid recipe id", recipe: null };
+    }
+
+    return { isValid: true, error: null, recipe: result.rows[0] };
+  } catch (err) {
     return { isValid: false, error: err.message, recipe: null };
-  });
-
-  if (result.rowCount <= 0) {
-    return { isValid: false, error: "Invalid recipe id", recipe: null };
   }
-
-  return { isValid: true, error: null, recipe: result.rows[0] };
 };
 
 const getRecipe = async (recipe_id) => {
@@ -127,24 +129,23 @@ const getRecipe = async (recipe_id) => {
                   INNER JOIN users ON recipes.user_id = users.id
                 WHERE
                   recipes.id = '${recipe_id}'`;
-  let result = await pool.query(query).catch((err) => {
-    return { isValid: false, error: err.message, recipe: null };
-  });
 
-  if (result.rowCount <= 0) {
-    return { isValid: false, error: "Invalid recipe id", recipe: null };
-  }
+  try {
+    let result = await pool.query(query);
+    if (result.rowCount <= 0) {
+      return { isValid: false, error: "Invalid recipe id", recipe: null };
+    }
 
-  const recipe = {
-    id: result.rows[0].id,
-    title: result.rows[0].title,
-    description: JSON.parse(result.rows[0].description),
-    user: { id: result.rows[0].user_id, username: result.rows[0].username },
-    comments: [],
-    numComments: 0,
-  };
+    const recipe = {
+      id: result.rows[0].id,
+      title: result.rows[0].title,
+      description: JSON.parse(result.rows[0].description),
+      user: { id: result.rows[0].user_id, username: result.rows[0].username },
+      comments: [],
+      numComments: 0,
+    };
 
-  query = `SELECT
+    query = `SELECT
             feedback.id,
             feedback.description AS message,
             feedback.user_id,
@@ -153,24 +154,26 @@ const getRecipe = async (recipe_id) => {
             feedback
             INNER JOIN users ON users.id = feedback.user_id
           WHERE
-            feedback.recipe_id = 0
+            feedback.recipe_id = '${recipe_id}'
           ORDER BY
             feedback.id ASC`;
-  result = await pool.query(query).catch((err) => {
+
+    result = await pool.query(query);
+
+    recipe.numComments = result.rowCount;
+    for (let row of result.rows) {
+      const comment = {
+        id: row.id,
+        comment: row.message,
+        user: { id: row.user_id, username: row.username },
+      };
+      recipe.comments.push(comment);
+    }
+
+    return { isValid: true, error: null, recipe };
+  } catch (err) {
     return { isValid: false, error: err.message, recipe: null };
-  });
-
-  recipe.numComments = result.rowCount;
-  for (let row of result.rows) {
-    const comment = {
-      id: row.id,
-      comment: row.message,
-      user: { id: row.user_id, username: row.username },
-    };
-    recipe.comments.push(comment);
   }
-
-  return { isValid: true, error: null, recipe };
 };
 
 const getRecipesByUser = async (user_id) => {
@@ -190,23 +193,25 @@ const getRecipesByUser = async (user_id) => {
                 GROUP BY
                   recipes.id,
                   users.username`;
-  const result = await pool.query(query).catch((err) => {
+
+  try {
+    const result = await pool.query(query);
+    let recipes = [];
+    for (let row of result.rows) {
+      const recipe = {
+        id: row.id,
+        title: row.title,
+        description: JSON.parse(row.description),
+        user: { id: row.user_id, username: row.username },
+        numOfComments: parseInt(row.num_comments, 10),
+      };
+      recipes.push(recipe);
+    }
+
+    return { isValid: true, error: null, recipes };
+  } catch (err) {
     return { isValid: false, error: err.message, recipes: [] };
-  });
-
-  let recipes = [];
-  for (let row of result.rows) {
-    const recipe = {
-      id: row.id,
-      title: row.title,
-      description: JSON.parse(row.description),
-      user: { id: row.user_id, username: row.username },
-      numOfComments: parseInt(row.num_comments, 10),
-    };
-    recipes.push(recipe);
   }
-
-  return { isValid: true, error: null, recipes };
 };
 
 const createFeedback = async (feedback) => {
@@ -217,11 +222,13 @@ const createFeedback = async (feedback) => {
                     '${feedback.recipeId}',
                     '${feedback.userId}'
                   )`;
-  const res = await pool.query(query).catch((err) => {
-    return { isValid: false, error: err.message };
-  });
 
-  return { isValid: true, error: null };
+  try {
+    const res = await pool.query(query);
+    return { isValid: true, error: null };
+  } catch (err) {
+    return { isValid: false, error: err.message };
+  }
 };
 
 // (async function () {
