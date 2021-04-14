@@ -33,13 +33,15 @@ const validateAddRecipe = (body) => {
   const schema = Joi.object({
     title: Joi.string().required(),
     description: Joi.object({
-      ingridients: Joi.array().items(
-        Joi.object({
-          item: Joi.string().required(),
-          quantity: Joi.string().required(),
-        })
-      ),
-      directions: Joi.array().items(Joi.string().required()),
+      ingridients: Joi.array()
+        .items(
+          Joi.object({
+            item: Joi.string().required(),
+            quantity: Joi.string().required(),
+          })
+        )
+        .required(),
+      directions: Joi.array().items(Joi.string().required()).required(),
     }),
   });
 
